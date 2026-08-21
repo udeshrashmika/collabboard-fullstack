@@ -1,19 +1,45 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
-import LandingPage from './pages/Landing/LandingPage'
-import LoginPage from './pages/Login/LoginPage'
-import RegisterPage from './pages/Register/RegisterPage'
-import DashboardPage from './pages/Dashboard/DashboardPage'
-import BoardPage from './pages/Board/BoardPage'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './components/AuthContext.jsx';
+import { BoardsProvider } from './components/BoardsContext.jsx';
+import { TasksProvider } from './components/TasksContext.jsx';
+import { HistoryProvider } from './components/HistoryContext.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
+import AppLayout from './components/layout/AppLayout.jsx';
+import Login from './components/Login.jsx';
+import Register from './components/Register.jsx';
+import ForgotPassword from './components/ForgotPassword.jsx';
+import Dashboard from './components/dashboard/Dashboard.jsx';
+import KanbanBoard from './components/kanban/KanbanBoard.jsx';
 
-export default function App() {
+function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/boards/:boardId" element={<BoardPage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  )
+    <Router>
+      <AuthProvider>
+        <BoardsProvider>
+          <TasksProvider>
+            <HistoryProvider>
+              <Routes>
+                <Route path="/" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+
+                <Route
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path="/board" element={<Dashboard />} />
+                  <Route path="/board/:boardId" element={<KanbanBoard />} />
+                </Route>
+              </Routes>
+            </HistoryProvider>
+          </TasksProvider>
+        </BoardsProvider>
+      </AuthProvider>
+    </Router>
+  );
 }
+
+export default App;

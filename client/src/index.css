@@ -1344,7 +1344,7 @@ select.modal-input {
   }
 }
 
-/* ---------- Search bar ---------- */
+/*  Search bar */
 .dashboard-header-actions {
   display: flex;
   align-items: center;
@@ -1375,7 +1375,7 @@ select.modal-input {
   color: var(--ink-faint);
 }
 
-/* ---------- Sidebar scroll wrapper + recent history ---------- */
+/*  Sidebar scroll wrapper + recent history */
 .sidebar-scroll {
   flex: 1;
   display: flex;
@@ -1436,7 +1436,7 @@ select.modal-input {
   font-weight: 600;
 }
 
-/* ---------- Recent item delete button ---------- */
+/* Recent item delete button  */
 .sidebar-recent-row {
   display: flex;
   align-items: center;
@@ -1473,7 +1473,7 @@ select.modal-input {
   color: #dc4c3f;
 }
 
-/* ---------- Account menu dropdown ---------- */
+/*  Account menu dropdown */
 .account-menu {
   position: relative;
 }
@@ -1557,7 +1557,7 @@ select.modal-input {
   color: #dc4c3f;
 }
 
-/* ---------- Forgot password page ---------- */
+/*  Forgot password page  */
 .auth-success-icon {
   width: 56px;
   height: 56px;

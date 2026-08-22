@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
+import { useBoards } from '../BoardsContext.jsx';
+import { useHistory } from '../HistoryContext.jsx';
 import AccountMenu from './AccountMenu';
 import EditAccountModal from '../auth/EditAccountModal';
 import ConfirmDialog from '../common/ConfirmDialog';
-
-// TODO(m02/m03): "Recent boards" sidebar section removed for the m01 branch.
-// It needs useBoards() + useHistory(). Restore once those contexts land.
 
 const navItems = [
   { to: '/board', label: 'My Boards', icon: BoardsIcon },
@@ -23,6 +22,23 @@ function BoardsIcon() {
   );
 }
 
+function ClockIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 3" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  );
+}
+
 function LogoutIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
@@ -35,6 +51,8 @@ function LogoutIcon() {
 
 export default function AppLayout() {
   const { user, logout, updateUser, deleteAccount } = useAuth();
+  const { boards } = useBoards();
+  const { history, removeFromHistory } = useHistory();
   const navigate = useNavigate();
 
   const [editOpen, setEditOpen] = useState(false);
@@ -55,6 +73,10 @@ export default function AppLayout() {
     setDeleteOpen(false);
     navigate('/');
   };
+
+  const recentBoards = history
+    .map((id) => boards.find((b) => b.id === id))
+    .filter(Boolean);
 
   return (
     <div className="app-shell">
@@ -77,6 +99,37 @@ export default function AppLayout() {
               </NavLink>
             ))}
           </nav>
+
+          {recentBoards.length > 0 && (
+            <div className="sidebar-section">
+              <span className="sidebar-section-label">Recent</span>
+              <div className="sidebar-recent-list">
+                {recentBoards.map((b) => (
+                  <div key={b.id} className="sidebar-recent-row">
+                    <NavLink
+                      to={`/board/${b.id}`}
+                      className={({ isActive }) => `sidebar-recent-item${isActive ? ' active' : ''}`}
+                    >
+                      <ClockIcon />
+                      <span>{b.name}</span>
+                    </NavLink>
+                    <button
+                      type="button"
+                      className="sidebar-recent-remove"
+                      aria-label={`Remove ${b.name} from recent`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        removeFromHistory(b.id);
+                      }}
+                    >
+                      <CloseIcon />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="sidebar-footer">

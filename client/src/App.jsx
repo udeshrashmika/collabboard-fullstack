@@ -9,15 +9,7 @@ import Login from './components/Login.jsx';
 import Register from './components/Register.jsx';
 import ForgotPassword from './components/ForgotPassword.jsx';
 import Dashboard from './components/dashboard/Dashboard.jsx';
-
-function Placeholder({ title }) {
-  return (
-    <div className="coming-soon">
-      <h2>{title}</h2>
-      <p>This section is being built by another team member.</p>
-    </div>
-  );
-}
+import KanbanBoard from './components/kanban/KanbanBoard.jsx';
 
 function App() {
   return (
@@ -39,10 +31,8 @@ function App() {
                   }
                 >
                   <Route path="/board" element={<Dashboard />} />
-                  <Route path="/board/:boardId" element={<Placeholder title="Kanban Board" />} />
+                  <Route path="/board/:boardId" element={<KanbanBoard />} />
                 </Route>
-
-                <Route path="*" element={<Placeholder title="404 — Not Found" />} />
               </Routes>
             </HistoryProvider>
           </TasksProvider>

@@ -3,8 +3,13 @@ import { createContext, useContext, useState, useEffect } from 'react';
 const BoardsContext = createContext(null);
 
 function loadBoards() {
-  const stored = localStorage.getItem('collabboard_boards');
-  return stored ? JSON.parse(stored) : [];
+  try {
+    const stored = localStorage.getItem('collabboard_boards');
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 export function BoardsProvider({ children }) {
@@ -22,6 +27,7 @@ export function BoardsProvider({ children }) {
       color: data.color || 'accent',
       members: data.members || [],
       dueDate: data.dueDate || '',
+      status: 'todo',
       createdAt: new Date().toISOString(),
     };
     setBoards((prev) => [board, ...prev]);
@@ -36,8 +42,16 @@ export function BoardsProvider({ children }) {
     setBoards((prev) => prev.filter((b) => b.id !== id));
   };
 
+  const moveBoard = (id, status) => {
+    updateBoard(id, { status });
+  };
+
+  const getBoard = (id) => boards.find((b) => b.id === id) || null;
+
   return (
-    <BoardsContext.Provider value={{ boards, createBoard, updateBoard, deleteBoard }}>
+    <BoardsContext.Provider
+      value={{ boards, createBoard, updateBoard, deleteBoard, moveBoard, getBoard }}
+    >
       {children}
     </BoardsContext.Provider>
   );

@@ -698,6 +698,7 @@ body {
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
 .board-card-desc {
@@ -740,6 +741,7 @@ body {
 
 .board-card-actions {
   display: flex;
+  align-items: center;
   gap: 0.25rem;
   flex-shrink: 0;
 }
@@ -1023,6 +1025,7 @@ body {
   font-weight: 600;
   color: var(--ink);
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .task-card-desc {
@@ -1034,6 +1037,7 @@ body {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 .task-card-footer {
@@ -1283,7 +1287,7 @@ select.modal-input {
 
 .kanban-columns {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.25rem;
   align-items: start;
 }
@@ -1296,6 +1300,7 @@ select.modal-input {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
+  min-width: 0;
 }
 
 .kanban-column-header {
@@ -1342,6 +1347,93 @@ select.modal-input {
   .kanban-columns {
     grid-template-columns: 1fr;
   }
+}
+
+/*  Board status badge on the dashboard card  */
+.status-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  margin-right: 0.25rem;
+}
+
+.status-todo {
+  background-color: #f2f0ea;
+  color: var(--ink-soft);
+}
+
+.status-doing {
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+
+.status-done {
+  background-color: #e7f5ee;
+  color: #1a8354;
+}
+
+/*  Board detail card shown inside a Kanban column  */
+.board-detail-card {
+  position: relative;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 0.9rem;
+  overflow: hidden;
+  box-shadow: 0 8px 16px -12px rgba(32, 31, 28, 0.25);
+}
+
+.board-detail-color {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+}
+
+.board-detail-title {
+  margin: 0.35rem 0 0 0;
+  font-family: 'Fraunces', serif;
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.board-detail-desc {
+  margin: 0.4rem 0 0 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.board-detail-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.board-detail-move {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--card-border);
+}
+
+.board-detail-step {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink-faint);
 }
 
 /*  Search bar */

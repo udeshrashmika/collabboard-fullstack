@@ -1,7 +1,5 @@
 import mongoose from 'mongoose';
 
-const mongoose = require('mongoose');
-
 const taskSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String },
@@ -19,6 +17,5 @@ const taskSchema = new mongoose.Schema({
   optimisticConcurrency: true 
 });
 
-module.exports = mongoose.model('Task', taskSchema);
+export default mongoose.model('Task', taskSchema);
 
-export default mongoose.model('User', userSchema);

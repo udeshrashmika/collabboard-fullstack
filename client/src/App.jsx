@@ -8,6 +8,7 @@ import AppLayout from './components/layout/AppLayout.jsx';
 import Login from './components/Login.jsx';
 import Register from './components/Register.jsx';
 import ForgotPassword from './components/ForgotPassword.jsx';
+import ResetPassword from './components/ResetPassword.jsx';
 import Dashboard from './components/dashboard/Dashboard.jsx';
 import KanbanBoard from './components/kanban/KanbanBoard.jsx';
 
@@ -22,6 +23,7 @@ function App() {
                 <Route path="/" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
                 <Route
                   element={

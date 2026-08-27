@@ -2,18 +2,7 @@ import 'dotenv/config'
 import http from 'http'
 import { Server } from 'socket.io'
 import app from './app.js'
-import connectDB from '../config/db.js' 
-import taskRoutes from './routes/taskRoutes.js'; 
-import boardRoutes from './routes/boardRoutes.js';
-import columnRoutes from './routes/columnRoutes.js';
-
-
-connectDB(); 
-
-
-app.use('/api/tasks', taskRoutes);
-app.use('/api/boards', boardRoutes);
-app.use('/api/columns', columnRoutes);
+import connectDB from '../config/db.js'
 
 const PORT = process.env.PORT || 5000
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
@@ -33,6 +22,17 @@ io.on('connection', (socket) => {
   })
 })
 
-httpServer.listen(PORT, () => {
-  console.log(`CollabBoard server running on port ${PORT}`)
-})
+// make io reachable from controllers via req.app.get('io')
+app.set('io', io)
+
+// connect to Mongo first, then start listening
+connectDB()
+  .then(() => {
+    httpServer.listen(PORT, () => {
+      console.log(`CollabBoard server running on port ${PORT}`)
+    })
+  })
+  .catch((err) => {
+    console.error('Failed to start server:', err.message)
+    process.exit(1)
+  })

@@ -1,28 +1,42 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
-export default function PasswordInput({ label, placeholder, value, onChange, autoComplete, error, required = true }) {
+export default function PasswordInput({
+  label,
+  error,
+  required = true,
+  disabled = false,
+  id,
+  ...rest
+}) {
   const [visible, setVisible] = useState(false);
+  const autoId = useId();
+  const inputId = id || `password-${autoId}`;
 
   return (
     <div className="input-group">
-      <label>{label}</label>
+      <label htmlFor={inputId}>{label}</label>
+
       <div className={`input-shell has-toggle${error ? ' has-error' : ''}`}>
         <svg className="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <rect x="4" y="10" width="16" height="10" rx="2" />
           <path d="M7.5 10V7a4.5 4.5 0 0 1 9 0v3" />
         </svg>
+
         <input
+          id={inputId}
           type={visible ? 'text' : 'password'}
-          placeholder={placeholder}
-          value={value}
-          onChange={onChange}
-          autoComplete={autoComplete}
           required={required}
+          disabled={disabled}
+          aria-invalid={error ? true : undefined}
+          {...rest}
         />
+
         <button
           type="button"
           className="password-toggle"
           onClick={() => setVisible((v) => !v)}
+          disabled={disabled}
+          tabIndex={-1}
           aria-label={visible ? 'Hide password' : 'Show password'}
         >
           {visible ? (
@@ -39,6 +53,7 @@ export default function PasswordInput({ label, placeholder, value, onChange, aut
           )}
         </button>
       </div>
+
       {error && <p className="field-error">{error}</p>}
     </div>
   );

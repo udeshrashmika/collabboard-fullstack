@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useBoards } from '../BoardsContext.jsx';
+import { useState, useEffect } from 'react';
+
+import { getBoards, createBoard, updateBoard, deleteBoard } from '../../api/board';
 import { useTasks } from '../TasksContext.jsx';
 import BoardCard from './BoardCard';
 import BoardModal from './BoardModal';
@@ -34,12 +35,29 @@ function BoardsIcon() {
 }
 
 export default function Dashboard() {
-  const { boards, createBoard, updateBoard, deleteBoard } = useBoards();
+ 
+  const [boards, setBoards] = useState([]);
+  
   const { getTasksForBoard } = useTasks();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingBoard, setEditingBoard] = useState(null);
   const [deletingBoard, setDeletingBoard] = useState(null);
   const [query, setQuery] = useState('');
+
+
+  const fetchBoards = async () => {
+    try {
+      const data = await getBoards();
+      setBoards(data);
+    } catch (error) {
+      console.error("Error fetching boards:", error);
+    }
+  };
+
+  
+  useEffect(() => {
+    fetchBoards();
+  }, []);
 
   const openCreate = () => {
     setEditingBoard(null);
@@ -51,19 +69,32 @@ export default function Dashboard() {
     setModalOpen(true);
   };
 
-  const handleSave = (data) => {
-    if (editingBoard) {
-      updateBoard(editingBoard.id, data);
-    } else {
-      createBoard(data);
+ 
+  const handleSave = async (data) => {
+    try {
+      if (editingBoard) {
+        
+        await updateBoard(editingBoard.id, data);
+      } else {
+        await createBoard(data);
+      }
+      await fetchBoards(); 
+      setModalOpen(false);
+      setEditingBoard(null);
+    } catch (error) {
+      console.error("Error saving board:", error);
     }
-    setModalOpen(false);
-    setEditingBoard(null);
   };
 
-  const handleConfirmDelete = () => {
-    deleteBoard(deletingBoard.id);
-    setDeletingBoard(null);
+
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteBoard(deletingBoard.id);
+      await fetchBoards(); 
+      setDeletingBoard(null);
+    } catch (error) {
+      console.error("Error deleting board:", error);
+    }
   };
 
   const getCounts = (boardId) => {
@@ -78,7 +109,8 @@ export default function Dashboard() {
   const filteredBoards = boards.filter((b) => {
     const q = query.trim().toLowerCase();
     if (!q) return true;
-    return b.name.toLowerCase().includes(q) || (b.description || '').toLowerCase().includes(q);
+    
+    return (b.name || '').toLowerCase().includes(q) || (b.description || '').toLowerCase().includes(q);
   });
 
   return (
@@ -126,7 +158,7 @@ export default function Dashboard() {
         <div className="board-grid">
           {filteredBoards.map((board) => (
             <BoardCard
-              key={board.id}
+              key={board.id} 
               board={board}
               taskCounts={getCounts(board.id)}
               onEdit={openEdit}

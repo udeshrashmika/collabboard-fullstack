@@ -1,13 +1,9 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useBoards } from '../BoardsContext.jsx';
 import { useHistory } from '../HistoryContext.jsx';
-
-const COLUMNS = [
-  { id: 'todo', label: 'To Do' },
-  { id: 'doing', label: 'Doing' },
-  { id: 'done', label: 'Done' },
-];
+import { getColumns } from '../../api/column';
+import { getBoards } from '../../api/board'; 
 
 function CalendarIcon() {
   return (
@@ -30,16 +26,49 @@ const formatDate = (iso) => {
 
 export default function KanbanBoard() {
   const { boardId } = useParams();
-  const { getBoard, moveBoard } = useBoards();
+  const { moveBoard } = useBoards(); 
   const { visitBoard } = useHistory();
 
+  const [columns, setColumns] = useState([]);
+  const [board, setBoard] = useState(null); 
+  const [isLoading, setIsLoading] = useState(true); 
+
   useEffect(() => {
-    if (boardId) visitBoard(boardId);
+    if (boardId) {
+      visitBoard(boardId);
+      
+      const fetchData = async () => {
+        try {
+          
+          const colsData = await getColumns(boardId);
+          setColumns(colsData);
+
+          
+          const boardsData = await getBoards();
+          const currentBoard = boardsData.find(b => b.id === boardId);
+          setBoard(currentBoard);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        } finally {
+          setIsLoading(false); 
+        }
+      };
+
+      fetchData();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardId]);
 
-  const board = getBoard(boardId);
+  
+  if (isLoading) {
+    return (
+      <div className="empty-state">
+        <p>Loading board details...</p>
+      </div>
+    );
+  }
 
+  
   if (!board) {
     return (
       <div className="empty-state">
@@ -50,13 +79,15 @@ export default function KanbanBoard() {
   }
 
   const status = board.status || 'todo';
-  const index = COLUMNS.findIndex((c) => c.id === status);
+  let index = columns.findIndex((c) => c._id === status);
+  if (index === -1) index = 0; 
+
   const due = formatDate(board.dueDate);
   const members = board.members || [];
 
   const shift = (delta) => {
-    const next = COLUMNS[index + delta];
-    if (next) moveBoard(board.id, next.id);
+    const next = columns[index + delta];
+    if (next) moveBoard(board.id, next._id);
   };
 
   return (
@@ -64,10 +95,10 @@ export default function KanbanBoard() {
       <Link to="/board" className="back-link">← All boards</Link>
 
       <div className="kanban-columns">
-        {COLUMNS.map((col, colIndex) => (
-          <section key={col.id} className="kanban-column">
+        {columns.map((col, colIndex) => (
+          <section key={col._id} className="kanban-column">
             <div className="kanban-column-header">
-              <h3>{col.label}</h3>
+              <h3>{col.title}</h3> 
             </div>
 
             <div className="kanban-column-body">
@@ -125,12 +156,12 @@ export default function KanbanBoard() {
                       ‹
                     </button>
                     <span className="board-detail-step">
-                      {index + 1} / {COLUMNS.length}
+                      {index + 1} / {columns.length}
                     </span>
                     <button
                       type="button"
                       className="move-square-btn"
-                      disabled={index === COLUMNS.length - 1}
+                      disabled={index === columns.length - 1}
                       aria-label="Move to next column"
                       onClick={() => shift(1)}
                     >

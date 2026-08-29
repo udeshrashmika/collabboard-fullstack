@@ -1,14 +1,36 @@
-const PRIORITY_LABEL = { low: 'Low', medium: 'Medium', high: 'High' };
+const PRIORITY_LABEL = {
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+};
 
 function formatDate(dateStr) {
   if (!dateStr) return null;
+
   const d = new Date(dateStr);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+  if (Number.isNaN(d.getTime())) {
+    return null;
+  }
+
+  return d.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 function PersonIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <circle cx="12" cy="8" r="4" />
       <path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6" />
     </svg>
@@ -17,30 +39,124 @@ function PersonIcon() {
 
 function CheckIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M20 6L9 17l-5-5" />
     </svg>
   );
 }
 
-export default function TaskCard({ task, onEdit, onDelete, onMove, canMoveLeft, canMoveRight }) {
+function CalendarIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+    </svg>
+  );
+}
+
+export default function TaskCard({
+  task,
+  onEdit,
+  onDelete,
+  onMove,
+  canMoveLeft,
+  canMoveRight,
+}) {
   const dueLabel = formatDate(task.dueDate);
-  const isDone = task.status === 'done';
-  const isOverdue = task.dueDate && !isDone && new Date(task.dueDate) < new Date(new Date().toDateString());
+
+  const isDone =
+    task.status === 'done' ||
+    task.columnTitle?.toLowerCase() === 'done';
+
+  const isOverdue =
+    task.dueDate &&
+    !isDone &&
+    new Date(task.dueDate) <
+      new Date(new Date().toDateString());
+
+  const priority =
+    task.priority && PRIORITY_LABEL[task.priority]
+      ? task.priority
+      : null;
+
+  const assigneeName =
+    task.assigneeDetails?.name ||
+    task.assigneeDetails?.email ||
+    null;
 
   return (
-    <div className={`task-card${isDone ? ' task-done' : ''}`}>
+    <div
+      className={`task-card${
+        isDone ? ' task-done' : ''
+      }`}
+    >
       <div className="task-card-top">
-        <span className={`priority-badge priority-${task.priority}`}>{PRIORITY_LABEL[task.priority]}</span>
+        {priority ? (
+          <span
+            className={`priority-badge priority-${priority}`}
+          >
+            {PRIORITY_LABEL[priority]}
+          </span>
+        ) : (
+          <span />
+        )}
+
         <div className="task-card-menu-buttons">
-          <button type="button" className="icon-btn icon-btn-sm icon-btn-edit" aria-label="Edit task" onClick={() => onEdit(task)}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <button
+            type="button"
+            className="icon-btn icon-btn-sm icon-btn-edit"
+            aria-label="Edit task"
+            onClick={() => onEdit(task)}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M12 20h9" />
               <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
             </svg>
           </button>
-          <button type="button" className="icon-btn icon-btn-sm" aria-label="Delete task" onClick={() => onDelete(task)}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+
+          <button
+            type="button"
+            className="icon-btn icon-btn-sm"
+            aria-label="Delete task"
+            onClick={() => onDelete(task)}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M3 6h18" />
               <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
             </svg>
@@ -48,24 +164,32 @@ export default function TaskCard({ task, onEdit, onDelete, onMove, canMoveLeft, 
         </div>
       </div>
 
-      <p className="task-card-title">{task.title}</p>
+      <p className="task-card-title">
+        {task.title}
+      </p>
 
-      {task.description && <p className="task-card-desc">{task.description}</p>}
+      {task.description && (
+        <p className="task-card-desc">
+          {task.description}
+        </p>
+      )}
 
       <div className="task-card-footer">
         <div className="task-card-meta">
-          {task.assignee && (
+          {assigneeName && (
             <span className="task-assignee-pill">
               <PersonIcon />
-              {task.assignee.split('@')[0]}
+              {assigneeName}
             </span>
           )}
+
           {dueLabel && (
-            <span className={`task-due${isOverdue ? ' overdue' : ''}`}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" />
-                <path d="M16 2v4M8 2v4M3 10h18" />
-              </svg>
+            <span
+              className={`task-due${
+                isOverdue ? ' overdue' : ''
+              }`}
+            >
+              <CalendarIcon />
               {dueLabel}
             </span>
           )}
@@ -81,8 +205,12 @@ export default function TaskCard({ task, onEdit, onDelete, onMove, canMoveLeft, 
           >
             ‹
           </button>
+
           {isDone ? (
-            <span className="task-done-badge" aria-label="Completed">
+            <span
+              className="task-done-badge"
+              aria-label="Completed"
+            >
               <CheckIcon />
             </span>
           ) : (

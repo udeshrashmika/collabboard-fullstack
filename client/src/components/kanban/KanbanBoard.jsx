@@ -1,93 +1,81 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useBoards } from '../BoardsContext.jsx';
-import { useHistory } from '../HistoryContext.jsx';
-import { getColumns } from '../../api/column';
-import { getBoards } from '../../api/board'; 
 
-function CalendarIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <path d="M16 2v4M8 2v4M3 10h18" />
-    </svg>
-  );
+import { useBoards } from '../BoardsContext.jsx';
+import { useTasks } from '../TasksContext.jsx';
+import { useHistory } from '../HistoryContext.jsx';
+
+const COLUMNS = [
+  { id: 'todo', label: 'To Do' },
+  { id: 'doing', label: 'Doing' },
+  { id: 'done', label: 'Done' },
+];
+
+function normalizeColumnTitle(title = '') {
+  return title.trim().toLowerCase();
 }
 
-const initials = (name = '') =>
-  name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
+function getStatusFromColumn(column) {
+  const title = normalizeColumnTitle(column?.title);
 
-const formatDate = (iso) => {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-};
+  if (title === 'to do' || title === 'todo') {
+    return 'todo';
+  }
+
+  if (
+    title === 'doing' ||
+    title === 'in progress' ||
+    title === 'in-progress'
+  ) {
+    return 'doing';
+  }
+
+  if (title === 'done' || title === 'completed') {
+    return 'done';
+  }
+
+  return '';
+}
 
 export default function KanbanBoard() {
   const { boardId } = useParams();
-  const { moveBoard } = useBoards(); 
+  const { getBoard, moveBoard } = useBoards();
   const { visitBoard } = useHistory();
 
-  const [columns, setColumns] = useState([]);
-  const [board, setBoard] = useState(null); 
-  const [isLoading, setIsLoading] = useState(true); 
-
   useEffect(() => {
-    if (boardId) {
-      visitBoard(boardId);
-      
-      const fetchData = async () => {
-        try {
-          
-          const colsData = await getColumns(boardId);
-          setColumns(colsData);
-
-          
-          const boardsData = await getBoards();
-          const currentBoard = boardsData.find(b => b.id === boardId);
-          setBoard(currentBoard);
-        } catch (error) {
-          console.error("Error fetching data:", error);
-        } finally {
-          setIsLoading(false); 
-        }
-      };
-
-      fetchData();
-    }
+    if (boardId) visitBoard(boardId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardId]);
 
-  
-  if (isLoading) {
-    return (
-      <div className="empty-state">
-        <p>Loading board details...</p>
-      </div>
-    );
-  }
+  const board = getBoard(boardId);
 
-  
   if (!board) {
     return (
       <div className="empty-state">
         <h1>Board not found</h1>
-        <p>It may have been deleted.</p>
+
+        <p>
+          The board may have been deleted or is not available.
+        </p>
+
+        <Link
+          to="/board"
+          className="btn btn-primary"
+        >
+          Back to boards
+        </Link>
       </div>
     );
   }
 
   const status = board.status || 'todo';
-  let index = columns.findIndex((c) => c._id === status);
-  if (index === -1) index = 0; 
-
+  const index = COLUMNS.findIndex((c) => c.id === status);
   const due = formatDate(board.dueDate);
   const members = board.members || [];
 
   const shift = (delta) => {
-    const next = columns[index + delta];
-    if (next) moveBoard(board.id, next._id);
+    const next = COLUMNS[index + delta];
+    if (next) moveBoard(board.id, next.id);
   };
 
   return (
@@ -95,10 +83,10 @@ export default function KanbanBoard() {
       <Link to="/board" className="back-link">← All boards</Link>
 
       <div className="kanban-columns">
-        {columns.map((col, colIndex) => (
-          <section key={col._id} className="kanban-column">
+        {COLUMNS.map((col, colIndex) => (
+          <section key={col.id} className="kanban-column">
             <div className="kanban-column-header">
-              <h3>{col.title}</h3> 
+              <h3>{col.label}</h3>
             </div>
 
             <div className="kanban-column-body">
@@ -111,38 +99,58 @@ export default function KanbanBoard() {
 
                   <h4 className="board-detail-title">{board.name}</h4>
 
-                  {board.description && (
-                    <p className="board-detail-desc">{board.description}</p>
-                  )}
+          {board.description && (
+            <p className="kanban-board-description">
+              {board.description}
+            </p>
+          )}
+        </div>
 
-                  <div className="board-detail-meta">
-                    {members.length > 0 ? (
-                      <div className="avatar-stack">
-                        {members.slice(0, 3).map((m) => (
-                          <span
-                            key={m.id || m.email}
-                            className="avatar-stack-item"
-                            title={m.email || m.name}
-                          >
-                            {initials(m.name || m.email)}
-                          </span>
-                        ))}
-                        {members.length > 3 && (
-                          <span className="avatar-stack-item avatar-stack-more">
-                            +{members.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="board-card-no-members">No members yet</span>
-                    )}
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={loadTasks}
+        >
+          Refresh
+        </button>
+      </div>
 
-                    {due && (
-                      <span className="board-due">
-                        <CalendarIcon />
-                        {due}
-                      </span>
-                    )}
+      {columnsError && (
+        <div className="field-error">
+          {columnsError}
+        </div>
+      )}
+
+      {tasksError && (
+        <div className="field-error">
+          {tasksError}
+        </div>
+      )}
+
+      <div className="kanban-board">
+        {orderedColumns.map(
+          (column, columnIndex) => {
+            const columnTasks = boardTasks.filter(
+              (task) =>
+                String(task.columnId) ===
+                String(column._id)
+            );
+
+            const status =
+              getStatusFromColumn(column);
+
+            return (
+              <section
+                key={column._id}
+                className={`kanban-column kanban-column-${status}`}
+              >
+                <div className="kanban-column-header">
+                  <div className="kanban-column-title-row">
+                    <h2>{column.title}</h2>
+
+                    <span className="kanban-column-count">
+                      {columnTasks.length}
+                    </span>
                   </div>
 
                   <div className="board-detail-move">
@@ -156,12 +164,12 @@ export default function KanbanBoard() {
                       ‹
                     </button>
                     <span className="board-detail-step">
-                      {index + 1} / {columns.length}
+                      {index + 1} / {COLUMNS.length}
                     </span>
                     <button
                       type="button"
                       className="move-square-btn"
-                      disabled={index === columns.length - 1}
+                      disabled={index === COLUMNS.length - 1}
                       aria-label="Move to next column"
                       onClick={() => shift(1)}
                     >
@@ -176,6 +184,19 @@ export default function KanbanBoard() {
           </section>
         ))}
       </div>
+
+      {modalOpen && (
+        <TaskModal
+          boardId={boardId}
+          initialTask={editingTask}
+          members={board.members || []}
+          defaultStatus={
+            editingTask?.status || 'todo'
+          }
+          onSave={handleSaveTask}
+          onClose={closeModal}
+        />
+      )}
     </div>
   );
 }

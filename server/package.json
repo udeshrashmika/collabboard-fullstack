@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --watch",
+    "test:ci": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --coverage --ci"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -20,7 +22,11 @@
   },
   "devDependencies": {
     "jest": "^30.1.1",
+    "mongodb-memory-server": "^10.4.3",
     "nodemon": "^3.1.10",
     "supertest": "^7.1.4"
+  },
+  "allowScripts": {
+    "mongodb-memory-server@10.4.3": true
   }
 }
